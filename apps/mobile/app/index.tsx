@@ -1,12 +1,18 @@
-import { StyleSheet, Text, View } from 'react-native'
+import { Redirect } from 'expo-router'
+import { ActivityIndicator, StyleSheet, View } from 'react-native'
+import { useAuth } from '../lib/auth'
 import { colors } from '../lib/theme'
 
 export default function Index() {
-  return (
-    <View style={styles.container}>
-      <Text style={styles.title}>family7</Text>
-    </View>
-  )
+  const { status } = useAuth()
+  if (status === 'loading') {
+    return (
+      <View style={styles.container}>
+        <ActivityIndicator color={colors.accent} />
+      </View>
+    )
+  }
+  return <Redirect href={status === 'signedIn' ? '/home' : '/login'} />
 }
 
 const styles = StyleSheet.create({
@@ -15,10 +21,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: colors.background,
-  },
-  title: {
-    color: colors.text,
-    fontSize: 32,
-    fontWeight: '700',
   },
 })
