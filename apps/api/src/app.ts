@@ -1,5 +1,7 @@
 import fastify from 'fastify'
 import { ZodError } from 'zod'
+import authRoutes from './modules/auth/routes'
+import authPlugin from './plugins/auth'
 
 export function buildApp() {
   const app = fastify({ logger: true })
@@ -13,6 +15,9 @@ export function buildApp() {
   })
 
   app.get('/health', async () => ({ ok: true }))
+
+  app.register(authPlugin)
+  app.register(authRoutes)
 
   return app
 }
