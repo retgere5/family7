@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import type { PingKind } from './pings'
+import type { PlaceRef } from './places'
 
 export const locationPointSchema = z.object({
   lat: z.number().min(-90).max(90),
@@ -39,9 +40,11 @@ export type WsClientMessage = z.infer<typeof wsClientMessageSchema>
 
 export type WsServerMessage =
   | { type: 'ready'; circleId: string }
-  | ({ type: 'member:location' } & MemberLocation)
+  | ({ type: 'member:location'; place: PlaceRef | null } & MemberLocation)
   | { type: 'member:status'; userId: string; statusEmoji: string | null }
   | { type: 'member:sharing'; userId: string; paused: boolean }
   | { type: 'member:ping'; userId: string; kind: PingKind; sentAt: string }
+  | { type: 'place:transition'; userId: string; transition: 'enter' | 'leave'; place: PlaceRef }
+  | { type: 'places:updated' }
   | { type: 'circle:member_joined'; userId: string; name: string }
   | { type: 'error'; message: string }
