@@ -45,6 +45,10 @@ export function useCircleLive() {
   useEffect(() => {
     if (!hasCircle) return
     const unsubscribe = subscribeLive((message) => {
+      if (message.type === 'circle:member_joined') {
+        void queryClient.invalidateQueries({ queryKey: ['circle'] })
+        return
+      }
       if (
         message.type !== 'member:location' &&
         message.type !== 'member:status' &&

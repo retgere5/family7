@@ -43,4 +43,5 @@ export type WsServerMessage =
   | { type: 'member:status'; userId: string; statusEmoji: string | null }
   | { type: 'member:sharing'; userId: string; paused: boolean }
   | { type: 'member:ping'; userId: string; kind: PingKind; sentAt: string }
+  | { type: 'circle:member_joined'; userId: string; name: string }
   | { type: 'error'; message: string }
