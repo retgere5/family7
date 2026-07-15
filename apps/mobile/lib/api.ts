@@ -1,4 +1,4 @@
-import type { AuthResponse, Circle } from '@family7/shared'
+import type { AuthResponse, Circle, LocationPoint, User } from '@family7/shared'
 import * as SecureStore from 'expo-secure-store'
 
 const baseUrl = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3001'
@@ -92,8 +92,37 @@ export async function signOut() {
   }
 }
 
+export function getAccessToken() {
+  return accessToken
+}
+
+export function apiWsUrl() {
+  return `${baseUrl.replace(/^http/, 'ws')}/ws`
+}
+
 export function getMyCircle() {
   return request<{ circle: Circle | null }>('/circles/mine')
+}
+
+export function postLocations(points: LocationPoint[]) {
+  return request<{ stored: number }>('/locations', {
+    method: 'POST',
+    body: JSON.stringify({ locations: points }),
+  })
+}
+
+export function updateStatus(statusEmoji: string | null) {
+  return request<{ user: User }>('/me/status', {
+    method: 'PATCH',
+    body: JSON.stringify({ statusEmoji }),
+  })
+}
+
+export function updateSharing(paused: boolean) {
+  return request<{ user: User; sharingPaused: boolean }>('/me/sharing', {
+    method: 'PATCH',
+    body: JSON.stringify({ paused }),
+  })
 }
 
 export function createCircle(name: string) {
