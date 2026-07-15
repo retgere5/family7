@@ -1,7 +1,9 @@
+import websocket from '@fastify/websocket'
 import fastify from 'fastify'
 import { ZodError } from 'zod'
 import authRoutes from './modules/auth/routes'
 import circleRoutes from './modules/circles/routes'
+import liveRoutes from './modules/live/routes'
 import locationRoutes from './modules/locations/routes'
 import presenceRoutes from './modules/presence/routes'
 import authPlugin from './plugins/auth'
@@ -19,11 +21,13 @@ export function buildApp() {
 
   app.get('/health', async () => ({ ok: true }))
 
+  app.register(websocket)
   app.register(authPlugin)
   app.register(authRoutes)
   app.register(circleRoutes)
   app.register(locationRoutes)
   app.register(presenceRoutes)
+  app.register(liveRoutes)
 
   return app
 }
