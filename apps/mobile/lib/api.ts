@@ -3,6 +3,13 @@ import * as SecureStore from 'expo-secure-store'
 
 const baseUrl = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3001'
 const REFRESH_KEY = 'family7.refreshToken'
+const REQUEST_TIMEOUT_MS = 12000
+
+function fetchWithTimeout(url: string, init: RequestInit = {}) {
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS)
+  return fetch(url, { ...init, signal: controller.signal }).finally(() => clearTimeout(timer))
+}
 
 let accessToken: string | null = null
 let refreshToken: string | null = null
@@ -32,7 +39,7 @@ async function dropTokens() {
 async function refreshSession() {
   refreshing ??= (async () => {
     if (!refreshToken) return null
-    const response = await fetch(`${baseUrl}/auth/refresh`, {
+    const response = await fetchWithTimeout(`${baseUrl}/auth/refresh`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ refreshToken }),
@@ -53,7 +60,7 @@ async function refreshSession() {
 async function request<T>(path: string, init: RequestInit = {}, retry = true): Promise<T> {
   const headers: Record<string, string> = { 'content-type': 'application/json' }
   if (accessToken) headers.authorization = `Bearer ${accessToken}`
-  const response = await fetch(`${baseUrl}${path}`, { ...init, headers })
+  const response = await fetchWithTimeout(`${baseUrl}${path}`, { ...init, headers })
   if (response.status === 401 && retry) {
     const session = await refreshSession()
     if (session) return request(path, init, false)
@@ -84,7 +91,7 @@ export async function signOut() {
   const current = refreshToken
   await dropTokens()
   if (current) {
-    await fetch(`${baseUrl}/auth/logout`, {
+    await fetchWithTimeout(`${baseUrl}/auth/logout`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ refreshToken: current }),
