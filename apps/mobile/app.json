@@ -33,7 +33,8 @@
           "locationWhenInUsePermission": "Family7 shows your live location only to your circle."
         }
       ],
-      "expo-font"
+      "expo-font",
+      "@maplibre/maplibre-react-native"
     ]
   }
 }

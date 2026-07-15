@@ -1,18 +1,10 @@
+import { Camera, Map as MapLibreMap, Marker, type CameraRef } from '@maplibre/maplibre-react-native'
 import type { Circle, PingKind } from '@family7/shared'
 import * as Clipboard from 'expo-clipboard'
 import { LinearGradient } from 'expo-linear-gradient'
 import { Redirect, useRouter } from 'expo-router'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import {
-  ActivityIndicator,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native'
-import MapView, { Marker } from 'react-native-maps'
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { BatteryIcon } from '../components/BatteryIcon'
 import { ChevronDownIcon, CopyIcon, RecenterIcon, SlidersIcon } from '../components/icons'
@@ -25,7 +17,7 @@ import { speedKmh, speedLabel, timeAgo } from '../lib/format'
 import { subscribeLive } from '../lib/live'
 import { useLocationTracking } from '../lib/location'
 import { memberColor, pausedColor, type MemberColor } from '../lib/memberColors'
-import { darkMapStyle } from '../lib/mapStyle'
+import { MAP_STYLE_URL } from '../lib/mapStyle'
 import { useSelfPresence } from '../lib/presence'
 import { colors, fonts, gradients, radii } from '../lib/theme'
 
@@ -46,7 +38,7 @@ export default function Home() {
   const { data, isPending, isError } = useCircleLive()
   useLocationTracking(Boolean(data?.circle))
   const { setStatus, setPaused } = useSelfPresence()
-  const mapRef = useRef<MapView>(null)
+  const cameraRef = useRef<CameraRef>(null)
   const fitted = useRef(false)
   const [expanded, setExpanded] = useState(false)
   const [copied, setCopied] = useState(false)
@@ -86,10 +78,21 @@ export default function Home() {
   })
 
   function fitMap() {
-    if (!mapRef.current || located.length === 0) return
-    mapRef.current.fitToCoordinates(
-      located.map(({ location }) => ({ latitude: location.lat, longitude: location.lng })),
-      { edgePadding: { top: 160, right: 90, bottom: 340, left: 90 }, animated: true },
+    if (!cameraRef.current || located.length === 0) return
+    const first = located[0]
+    if (located.length === 1 && first) {
+      cameraRef.current.easeTo({
+        center: [first.location.lng, first.location.lat],
+        zoom: 14,
+        duration: 600,
+      })
+      return
+    }
+    const lats = located.map(({ location }) => location.lat)
+    const lngs = located.map(({ location }) => location.lng)
+    cameraRef.current.fitBounds(
+      [Math.min(...lngs), Math.min(...lats), Math.max(...lngs), Math.max(...lats)],
+      { padding: { top: 160, right: 90, bottom: 340, left: 90 }, duration: 600 },
     )
   }
 
@@ -126,26 +129,15 @@ export default function Home() {
 
   return (
     <View style={styles.container}>
-      <MapView
-        ref={mapRef}
+      <MapLibreMap
         style={StyleSheet.absoluteFill}
-        customMapStyle={Platform.OS === 'android' ? darkMapStyle : undefined}
-        userInterfaceStyle="dark"
-        initialRegion={{
-          latitude: 41.0,
-          longitude: 29.03,
-          latitudeDelta: 0.08,
-          longitudeDelta: 0.08,
-        }}
-        showsCompass={false}
-        toolbarEnabled={false}
+        mapStyle={MAP_STYLE_URL}
+        compass={false}
+        logo={false}
       >
+        <Camera ref={cameraRef} initialViewState={{ center: [29.03, 41.0], zoom: 10.5 }} />
         {located.map(({ member, location }) => (
-          <Marker
-            key={member.id}
-            coordinate={{ latitude: location.lat, longitude: location.lng }}
-            anchor={{ x: 0.5, y: 0.5 }}
-          >
+          <Marker key={member.id} lngLat={[location.lng, location.lat]}>
             <MarkerContent
               member={member}
               isSelf={member.id === user?.id}
@@ -154,7 +146,7 @@ export default function Home() {
             />
           </Marker>
         ))}
-      </MapView>
+      </MapLibreMap>
 
       <View style={[styles.topBar, { top: insets.top + 10 }]}>
         <View style={styles.namePill}>
