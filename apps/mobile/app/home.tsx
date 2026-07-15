@@ -1,9 +1,10 @@
 import type { Circle } from '@family7/shared'
-import { useQuery } from '@tanstack/react-query'
 import { Redirect, useRouter } from 'expo-router'
 import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from 'react-native'
-import { getMyCircle } from '../lib/api'
 import { useAuth } from '../lib/auth'
+import { useCircleLive } from '../lib/circle-live'
+import { speedLabel, timeAgo } from '../lib/format'
+import { useLocationTracking } from '../lib/location'
 import { colors } from '../lib/theme'
 
 type Member = Circle['members'][number]
@@ -11,7 +12,8 @@ type Member = Circle['members'][number]
 export default function Home() {
   const { user, signOut } = useAuth()
   const router = useRouter()
-  const { data, isPending, isError } = useQuery({ queryKey: ['circle'], queryFn: getMyCircle })
+  const { data, isPending, isError } = useCircleLive()
+  useLocationTracking(Boolean(data?.circle))
 
   if (isPending) {
     return (
@@ -70,10 +72,19 @@ function MemberRow({ member, isMe }: { member: Member; isMe: boolean }) {
           {member.name}
           {isMe ? ' (you)' : ''}
         </Text>
-        <Text style={styles.muted}>{member.role === 'OWNER' ? 'Owner' : 'Member'}</Text>
+        <Text style={styles.muted}>{memberSubtitle(member)}</Text>
       </View>
     </View>
   )
+}
+
+function memberSubtitle(member: Member) {
+  if (member.sharingPaused) return 'sharing paused'
+  if (!member.location) return 'no location yet'
+  const parts = [speedLabel(member.location.speed)]
+  if (member.location.battery != null) parts.push(`${member.location.battery}%`)
+  parts.push(timeAgo(member.location.recordedAt))
+  return parts.join(' · ')
 }
 
 const styles = StyleSheet.create({
