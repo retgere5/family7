@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { userSchema } from './auth'
+import { locationPointSchema } from './locations'
 
 export const createCircleSchema = z.object({
   name: z.string().trim().min(1).max(50),
@@ -18,6 +19,8 @@ export const circleRoleSchema = z.enum(['OWNER', 'MEMBER'])
 export const circleMemberSchema = userSchema.extend({
   role: circleRoleSchema,
   joinedAt: z.iso.datetime(),
+  sharingPaused: z.boolean(),
+  location: locationPointSchema.nullable(),
 })
 
 export const circleSchema = z.object({
