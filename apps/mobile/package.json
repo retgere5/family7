@@ -12,11 +12,15 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@expo-google-fonts/manrope": "^0.4.2",
     "@family7/shared": "workspace:*",
     "@tanstack/react-query": "^5.101.2",
     "expo": "~57.0.4",
     "expo-battery": "~57.0.0",
+    "expo-clipboard": "~57.0.0",
     "expo-constants": "~57.0.3",
+    "expo-font": "~57.0.0",
+    "expo-linear-gradient": "~57.0.0",
     "expo-linking": "~57.0.2",
     "expo-location": "~57.0.2",
     "expo-router": "~57.0.4",
@@ -24,8 +28,10 @@
     "expo-status-bar": "~57.0.0",
     "react": "19.2.3",
     "react-native": "0.86.0",
+    "react-native-maps": "1.27.2",
     "react-native-safe-area-context": "~5.7.0",
-    "react-native-screens": "4.25.2"
+    "react-native-screens": "4.25.2",
+    "react-native-svg": "15.15.4"
   },
   "devDependencies": {
     "@types/react": "~19.2.2",
