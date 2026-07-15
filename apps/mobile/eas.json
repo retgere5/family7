@@ -14,12 +14,14 @@
       "env": {
         "EXPO_PUBLIC_API_URL": "http://192.168.1.135:3001",
         "EXPO_PUBLIC_DEV_LOGIN": "1"
-      }
+      },
+      "channel": "preview"
     },
     "production": {
       "autoIncrement": true,
       "node": "22.22.1",
-      "pnpm": "11.13.0"
+      "pnpm": "11.13.0",
+      "channel": "production"
     }
   },
   "submit": {

@@ -8,3 +8,4 @@ allowBuilds:
 minimumReleaseAgeExclude:
   - '@expo/schema-utils@57.0.2'
   - expo-build-properties@57.0.5
+  - expo-updates@57.0.7
