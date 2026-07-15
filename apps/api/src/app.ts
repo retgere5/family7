@@ -3,6 +3,7 @@ import { ZodError } from 'zod'
 import authRoutes from './modules/auth/routes'
 import circleRoutes from './modules/circles/routes'
 import locationRoutes from './modules/locations/routes'
+import presenceRoutes from './modules/presence/routes'
 import authPlugin from './plugins/auth'
 
 export function buildApp() {
@@ -22,6 +23,7 @@ export function buildApp() {
   app.register(authRoutes)
   app.register(circleRoutes)
   app.register(locationRoutes)
+  app.register(presenceRoutes)
 
   return app
 }
