@@ -5,13 +5,15 @@
   "build": {
     "preview": {
       "distribution": "internal",
+      "autoIncrement": true,
       "node": "22.22.1",
       "pnpm": "11.13.0",
       "android": {
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "http://192.168.1.135:3001"
+        "EXPO_PUBLIC_API_URL": "http://192.168.1.135:3001",
+        "EXPO_PUBLIC_DEV_LOGIN": "1"
       }
     },
     "production": {

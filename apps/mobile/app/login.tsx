@@ -18,6 +18,8 @@ import { useAuth } from '../lib/auth'
 import { amberColor, roseColor, selfColor } from '../lib/memberColors'
 import { colors, fonts } from '../lib/theme'
 
+const devLoginEnabled = __DEV__ || process.env.EXPO_PUBLIC_DEV_LOGIN === '1'
+
 export default function Login() {
   const { signInDev } = useAuth()
   const router = useRouter()
@@ -102,7 +104,7 @@ export default function Login() {
           <LockIcon />
           <Text style={styles.privacyText}>Your location is visible only to your circle.</Text>
         </View>
-        {__DEV__ ? (
+        {devLoginEnabled ? (
           devOpen ? (
             <View style={styles.devCard}>
               <TextInput
