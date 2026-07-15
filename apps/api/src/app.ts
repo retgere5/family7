@@ -2,6 +2,7 @@ import fastify from 'fastify'
 import { ZodError } from 'zod'
 import authRoutes from './modules/auth/routes'
 import circleRoutes from './modules/circles/routes'
+import locationRoutes from './modules/locations/routes'
 import authPlugin from './plugins/auth'
 
 export function buildApp() {
@@ -20,6 +21,7 @@ export function buildApp() {
   app.register(authPlugin)
   app.register(authRoutes)
   app.register(circleRoutes)
+  app.register(locationRoutes)
 
   return app
 }

@@ -4,11 +4,13 @@ if (existsSync('.env')) process.loadEnvFile()
 
 const { config } = await import('./config')
 const { buildApp } = await import('./app')
+const { startHistoryCleanup } = await import('./lib/retention')
 
 const app = buildApp()
 
 try {
   await app.listen({ port: config.PORT, host: '0.0.0.0' })
+  startHistoryCleanup()
 } catch (error) {
   app.log.error(error)
   process.exit(1)

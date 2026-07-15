@@ -2,6 +2,7 @@ import { Prisma } from '../../generated/prisma/client'
 import { db } from '../../db'
 import { generateInviteCode } from '../../lib/inviteCode'
 import { toPublicUser } from '../auth/service'
+import { toLocationPayload } from '../locations/service'
 
 export class CircleError extends Error {
   constructor(
@@ -45,7 +46,10 @@ export async function getMyCircle(userId: string) {
     include: {
       circle: {
         include: {
-          members: { include: { user: true }, orderBy: { joinedAt: 'asc' } },
+          members: {
+            include: { user: { include: { latestLocation: true } } },
+            orderBy: { joinedAt: 'asc' },
+          },
         },
       },
     },
@@ -60,6 +64,8 @@ export async function getMyCircle(userId: string) {
       ...toPublicUser(member.user),
       role: member.role,
       joinedAt: member.joinedAt.toISOString(),
+      sharingPaused: member.user.sharingPaused,
+      location: member.user.latestLocation ? toLocationPayload(member.user.latestLocation) : null,
     })),
   }
 }
