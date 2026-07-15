@@ -2,8 +2,8 @@ import { wsClientMessageSchema } from '@family7/shared'
 import type { FastifyInstance } from 'fastify'
 import type { WebSocket } from 'ws'
 import { verifyAccessToken } from '../../lib/tokens'
-import { getCircleIdFor, ingestLocations } from '../locations/service'
-import { broadcast, register, unregister, type Connection } from './registry'
+import { getCircleIdFor, ingestLocations, publishLocation } from '../locations/service'
+import { register, unregister, type Connection } from './registry'
 
 const AUTH_TIMEOUT_MS = 5000
 
@@ -55,13 +55,7 @@ export default async function liveRoutes(app: FastifyInstance) {
           recordedAt: message.recordedAt,
         },
       ])
-      if (result.latest) {
-        broadcast(
-          connection.circleId,
-          { type: 'member:location', userId: connection.userId, ...result.latest },
-          connection.userId,
-        )
-      }
+      publishLocation(connection.userId, result)
     }
 
     socket.on('message', (raw: Buffer) => {

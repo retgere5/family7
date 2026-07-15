@@ -18,6 +18,7 @@ function applyUpdate(data: CircleData | undefined, message: MemberMessage) {
       case 'member:location':
         return {
           ...member,
+          place: message.place ?? null,
           location: {
             lat: message.lat,
             lng: message.lng,
