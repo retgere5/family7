@@ -1,4 +1,5 @@
 import { LinearGradient } from 'expo-linear-gradient'
+import type { Circle } from '@family7/shared'
 import { useQueryClient } from '@tanstack/react-query'
 import { useRouter } from 'expo-router'
 import { useRef, useState } from 'react'
@@ -34,11 +35,11 @@ export default function CircleSetup() {
 
   const firstName = user?.name.split(' ')[0] ?? 'there'
 
-  async function run(action: () => Promise<unknown>) {
+  async function run(action: () => Promise<Circle>) {
     setBusy(true)
     try {
-      await action()
-      await queryClient.invalidateQueries({ queryKey: ['circle'] })
+      const circle = await action()
+      queryClient.setQueryData(['circle'], { circle })
       router.replace('/home')
     } catch (error) {
       Alert.alert('Something went wrong', error instanceof Error ? error.message : 'unknown error')
