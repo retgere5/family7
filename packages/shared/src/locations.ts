@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import type { PingKind } from './pings'
 
 export const locationPointSchema = z.object({
   lat: z.number().min(-90).max(90),
@@ -41,4 +42,5 @@ export type WsServerMessage =
   | ({ type: 'member:location' } & MemberLocation)
   | { type: 'member:status'; userId: string; statusEmoji: string | null }
   | { type: 'member:sharing'; userId: string; paused: boolean }
+  | { type: 'member:ping'; userId: string; kind: PingKind; sentAt: string }
   | { type: 'error'; message: string }

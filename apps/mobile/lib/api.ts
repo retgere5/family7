@@ -1,4 +1,4 @@
-import type { AuthResponse, Circle, LocationPoint, User } from '@family7/shared'
+import type { AuthResponse, Circle, LocationPoint, PingKind, User } from '@family7/shared'
 import * as SecureStore from 'expo-secure-store'
 
 const baseUrl = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3001'
@@ -108,6 +108,13 @@ export function postLocations(points: LocationPoint[]) {
   return request<{ stored: number }>('/locations', {
     method: 'POST',
     body: JSON.stringify({ locations: points }),
+  })
+}
+
+export function sendPing(kind: PingKind) {
+  return request<{ ok: boolean }>('/pings', {
+    method: 'POST',
+    body: JSON.stringify({ kind }),
   })
 }
 

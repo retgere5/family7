@@ -1,4 +1,4 @@
-import { locationPointSchema, wsClientMessageSchema } from '@family7/shared'
+import { locationPointSchema, sendPingSchema, wsClientMessageSchema } from '@family7/shared'
 import { describe, expect, it } from 'vitest'
 
 describe('ws client messages', () => {
@@ -22,6 +22,17 @@ describe('ws client messages', () => {
   it('rejects unknown message types', () => {
     const parsed = wsClientMessageSchema.safeParse({ type: 'nope' })
     expect(parsed.success).toBe(false)
+  })
+})
+
+describe('pings', () => {
+  it('accepts known kinds', () => {
+    expect(sendPingSchema.safeParse({ kind: 'on_my_way' }).success).toBe(true)
+    expect(sendPingSchema.safeParse({ kind: 'arrived' }).success).toBe(true)
+  })
+
+  it('rejects unknown kinds', () => {
+    expect(sendPingSchema.safeParse({ kind: 'selfie' }).success).toBe(false)
   })
 })
 

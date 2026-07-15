@@ -5,6 +5,7 @@ import authRoutes from './modules/auth/routes'
 import circleRoutes from './modules/circles/routes'
 import liveRoutes from './modules/live/routes'
 import locationRoutes from './modules/locations/routes'
+import pingRoutes from './modules/pings/routes'
 import presenceRoutes from './modules/presence/routes'
 import authPlugin from './plugins/auth'
 
@@ -27,6 +28,7 @@ export function buildApp() {
   app.register(circleRoutes)
   app.register(locationRoutes)
   app.register(presenceRoutes)
+  app.register(pingRoutes)
   app.register(liveRoutes)
 
   return app

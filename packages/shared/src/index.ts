@@ -1,3 +1,4 @@
 export * from './auth'
 export * from './circles'
 export * from './locations'
+export * from './pings'
