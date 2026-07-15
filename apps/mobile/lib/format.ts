@@ -1,3 +1,10 @@
+export function speedKmh(speedMs: number | null | undefined) {
+  if (speedMs == null) return null
+  const kmh = speedMs * 3.6
+  if (kmh < 4) return null
+  return Math.round(kmh)
+}
+
 export function speedLabel(speedMs: number | null | undefined) {
   if (speedMs == null) return 'stationary'
   const kmh = speedMs * 3.6
