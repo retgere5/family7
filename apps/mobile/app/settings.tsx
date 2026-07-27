@@ -93,7 +93,7 @@ export default function Settings() {
                 <CopyIcon />
               </Pressable>
             </View>
-            <View style={styles.row}>
+            <View style={[styles.row, styles.rowBorder]}>
               <Text style={styles.rowTitle}>Members</Text>
               <View style={styles.memberStack}>
                 {members.map((member, index) => (
@@ -108,6 +108,13 @@ export default function Settings() {
                 ))}
               </View>
             </View>
+            <Pressable
+              style={({ pressed }) => [styles.row, pressed && styles.dim]}
+              onPress={() => router.push('/places')}
+            >
+              <Text style={styles.rowTitle}>Places</Text>
+              <Text style={styles.chevron}>›</Text>
+            </Pressable>
           </View>
         </>
       ) : null}
@@ -240,6 +247,11 @@ const styles = StyleSheet.create({
   },
   memberStack: {
     flexDirection: 'row',
+  },
+  chevron: {
+    fontFamily: fonts.bold,
+    fontSize: 18,
+    color: colors.faint,
   },
   stackedAvatar: {
     marginLeft: -7,

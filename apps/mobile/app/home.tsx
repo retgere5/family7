@@ -43,7 +43,7 @@ export default function Home() {
   const [expanded, setExpanded] = useState(false)
   const [copied, setCopied] = useState(false)
   const [sentPing, setSentPing] = useState<PingKind | null>(null)
-  const [ping, setPing] = useState<{ name: string; kind: PingKind } | null>(null)
+  const [banner, setBanner] = useState<string | null>(null)
 
   const circle = data?.circle ?? null
   const members = useMemo(() => circle?.members ?? [], [circle])
@@ -58,17 +58,28 @@ export default function Home() {
   useEffect(() => {
     if (!circle) return
     return subscribeLive((message) => {
-      if (message.type !== 'member:ping') return
-      const sender = circle.members.find((member) => member.id === message.userId)
-      setPing({ name: sender?.name ?? 'Someone', kind: message.kind })
+      if (message.type === 'member:ping') {
+        const sender = circle.members.find((member) => member.id === message.userId)
+        setBanner(`${sender?.name ?? 'Someone'} · ${PING_LABELS[message.kind]}`)
+        return
+      }
+      if (message.type === 'place:transition') {
+        const sender = circle.members.find((member) => member.id === message.userId)
+        const who = sender?.name ?? 'Someone'
+        setBanner(
+          message.transition === 'enter'
+            ? `${message.place.icon} ${who} arrived at ${message.place.name}`
+            : `${who} left ${message.place.name}`,
+        )
+      }
     })
   }, [circle])
 
   useEffect(() => {
-    if (!ping) return
-    const timer = setTimeout(() => setPing(null), 4000)
+    if (!banner) return
+    const timer = setTimeout(() => setBanner(null), 4000)
     return () => clearTimeout(timer)
-  }, [ping])
+  }, [banner])
 
   useEffect(() => {
     if (fitted.current || located.length === 0) return
@@ -162,11 +173,9 @@ export default function Home() {
         </Pressable>
       </View>
 
-      {ping ? (
+      {banner ? (
         <View style={[styles.pingBanner, { top: insets.top + 62 }]}>
-          <Text style={styles.pingText}>
-            {ping.name} · {PING_LABELS[ping.kind]}
-          </Text>
+          <Text style={styles.pingText}>{banner}</Text>
         </View>
       ) : null}
 
@@ -301,11 +310,12 @@ function MemberChip({
 }) {
   const paused = member.sharingPaused
   const shown = paused ? pausedColor : color
+  const speed = member.location ? speedLabel(member.location.speed) : null
   const line = paused
     ? 'Paused'
-    : member.location
-      ? speedLabel(member.location.speed)
-      : 'No location'
+    : member.place && speed === 'stationary'
+      ? `${member.place.icon} ${member.place.name}`
+      : (speed ?? 'No location')
   return (
     <Pressable style={[styles.chip, paused && styles.chipPaused]} onPress={onPress}>
       <MemberAvatar
@@ -336,11 +346,16 @@ function MemberListRow({
 }) {
   const paused = member.sharingPaused
   const shown = paused ? pausedColor : color
+  const speed = member.location ? speedLabel(member.location.speed) : null
   const line = paused
     ? '⏸ Sharing paused'
-    : member.location
-      ? speedLabel(member.location.speed)
-      : 'No location yet'
+    : !member.location
+      ? 'No location yet'
+      : speed !== 'stationary'
+        ? (speed ?? 'stationary')
+        : member.place
+          ? `${member.place.icon} At ${member.place.name}`
+          : 'stationary'
   return (
     <View style={[styles.memberRow, !last && styles.memberRowBorder]}>
       <MemberAvatar
