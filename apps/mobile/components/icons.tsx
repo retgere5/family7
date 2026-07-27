@@ -95,6 +95,18 @@ export function LockIcon({ size = 11, color = colors.muted }: IconProps) {
   )
 }
 
+export function PinIcon({ size = 34 }: IconProps) {
+  return (
+    <Svg width={size} height={(size * 44) / 34} viewBox="0 0 34 44">
+      <Path
+        d="M17 0C7.6 0 0 7.6 0 17c0 12.6 17 26 17 26s17-13.4 17-26C34 7.6 26.4 0 17 0z"
+        fill={colors.accent}
+      />
+      <Circle cx="17" cy="16" r="6.5" fill={colors.background} />
+    </Svg>
+  )
+}
+
 export function GoogleLogo({ size = 19 }: IconProps) {
   return (
     <Svg width={size} height={size} viewBox="0 0 18 18">
