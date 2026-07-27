@@ -1,4 +1,12 @@
-import type { AuthResponse, Circle, LocationPoint, PingKind, User } from '@family7/shared'
+import type {
+  AuthResponse,
+  Circle,
+  LocationPoint,
+  PingKind,
+  Place,
+  UpsertPlaceInput,
+  User,
+} from '@family7/shared'
 import * as SecureStore from 'expo-secure-store'
 
 const baseUrl = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3001'
@@ -116,6 +124,25 @@ export function postLocations(points: LocationPoint[]) {
     method: 'POST',
     body: JSON.stringify({ locations: points }),
   })
+}
+
+export function getPlaces() {
+  return request<{ places: Place[] }>('/places')
+}
+
+export function createPlace(input: UpsertPlaceInput) {
+  return request<{ place: Place }>('/places', { method: 'POST', body: JSON.stringify(input) })
+}
+
+export function updatePlace(id: string, input: Partial<UpsertPlaceInput>) {
+  return request<{ place: Place }>(`/places/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(input),
+  })
+}
+
+export function deletePlace(id: string) {
+  return request<{ ok: boolean }>(`/places/${id}`, { method: 'DELETE' })
 }
 
 export function sendPing(kind: PingKind) {

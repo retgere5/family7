@@ -50,6 +50,10 @@ export function useCircleLive() {
         void queryClient.invalidateQueries({ queryKey: ['circle'] })
         return
       }
+      if (message.type === 'places:updated') {
+        void queryClient.invalidateQueries({ queryKey: ['places'] })
+        return
+      }
       if (
         message.type !== 'member:location' &&
         message.type !== 'member:status' &&
