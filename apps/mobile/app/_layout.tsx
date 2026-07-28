@@ -7,6 +7,7 @@ import {
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { Stack } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
+import { UpdateGate } from '../components/UpdateGate'
 import { AuthProvider } from '../lib/auth'
 import { colors } from '../lib/theme'
 
@@ -23,6 +24,7 @@ export default function RootLayout() {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <StatusBar style="light" />
+        <UpdateGate />
         <Stack
           screenOptions={{
             headerShown: false,
