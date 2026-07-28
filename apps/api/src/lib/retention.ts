@@ -7,6 +7,7 @@ export function startHistoryCleanup() {
   const run = async () => {
     const cutoff = new Date(Date.now() - RETENTION_DAYS * DAY_MS)
     await db.locationHistory.deleteMany({ where: { recordedAt: { lt: cutoff } } }).catch(() => null)
+    await db.placeEvent.deleteMany({ where: { at: { lt: cutoff } } }).catch(() => null)
   }
   void run()
   const timer = setInterval(() => void run(), DAY_MS)

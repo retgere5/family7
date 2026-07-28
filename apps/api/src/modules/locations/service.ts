@@ -98,13 +98,39 @@ export async function ingestLocations(
     update: { placeId: place?.id ?? null, ...toColumns(latest) },
   })
 
+  const changedPlace = (place?.id ?? null) !== (previousPlace?.id ?? null)
+  if (circleId && changedPlace) {
+    const events = []
+    if (previousPlace) {
+      events.push({
+        circleId,
+        userId,
+        placeId: previousPlace.id,
+        placeName: previousPlace.name,
+        placeIcon: previousPlace.icon,
+        transition: 'leave',
+      })
+    }
+    if (place) {
+      events.push({
+        circleId,
+        userId,
+        placeId: place.id,
+        placeName: place.name,
+        placeIcon: place.icon,
+        transition: 'enter',
+      })
+    }
+    if (events.length > 0) await db.placeEvent.createMany({ data: events })
+  }
+
   return {
     stored: sorted.length,
     latest: toLocationPayload(toColumns(latest)),
     circleId,
     place,
     previousPlace,
-    changedPlace: (place?.id ?? null) !== (previousPlace?.id ?? null),
+    changedPlace,
   }
 }
 

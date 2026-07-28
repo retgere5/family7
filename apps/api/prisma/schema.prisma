@@ -25,6 +25,7 @@ model User {
   locationHistory LocationHistory[]
   groceriesAdded  GroceryItem[]     @relation("GroceryAddedBy")
   groceriesChecked GroceryItem[]    @relation("GroceryCheckedBy")
+  placeEvents     PlaceEvent[]
 
   @@unique([provider, providerId])
 }
@@ -65,9 +66,27 @@ model Circle {
   name       String
   inviteCode String         @unique
   createdAt  DateTime       @default(now())
-  members    CircleMember[]
-  places     Place[]
-  groceries  GroceryItem[]
+  members     CircleMember[]
+  places      Place[]
+  groceries   GroceryItem[]
+  placeEvents PlaceEvent[]
+}
+
+model PlaceEvent {
+  id         String   @id @default(cuid())
+  circleId   String
+  userId     String
+  placeId    String?
+  placeName  String
+  placeIcon  String
+  transition String
+  at         DateTime @default(now())
+  circle     Circle   @relation(fields: [circleId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  place      Place?   @relation(fields: [placeId], references: [id], onDelete: SetNull)
+
+  @@index([circleId, at])
+  @@index([userId, at])
 }
 
 model GroceryItem {
@@ -97,6 +116,7 @@ model Place {
   createdAt DateTime         @default(now())
   circle    Circle           @relation(fields: [circleId], references: [id], onDelete: Cascade)
   visitors  LocationLatest[]
+  events    PlaceEvent[]
 
   @@index([circleId])
 }
