@@ -1,5 +1,6 @@
 export * from './auth'
 export * from './circles'
+export * from './groceries'
 export * from './locations'
 export * from './pings'
 export * from './places'

@@ -46,5 +46,6 @@ export type WsServerMessage =
   | { type: 'member:ping'; userId: string; kind: PingKind; sentAt: string }
   | { type: 'place:transition'; userId: string; transition: 'enter' | 'leave'; place: PlaceRef }
   | { type: 'places:updated' }
+  | { type: 'groceries:updated' }
   | { type: 'circle:member_joined'; userId: string; name: string }
   | { type: 'error'; message: string }

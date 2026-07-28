@@ -3,6 +3,7 @@ import fastify from 'fastify'
 import { ZodError } from 'zod'
 import authRoutes from './modules/auth/routes'
 import circleRoutes from './modules/circles/routes'
+import groceryRoutes from './modules/groceries/routes'
 import liveRoutes from './modules/live/routes'
 import locationRoutes from './modules/locations/routes'
 import pingRoutes from './modules/pings/routes'
@@ -31,6 +32,7 @@ export function buildApp() {
   app.register(presenceRoutes)
   app.register(pingRoutes)
   app.register(placeRoutes)
+  app.register(groceryRoutes)
   app.register(liveRoutes)
 
   return app
