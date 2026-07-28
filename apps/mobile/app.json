@@ -2,7 +2,7 @@
   "expo": {
     "name": "family7",
     "slug": "family7",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "scheme": "family7",
@@ -23,8 +23,7 @@
       "permissions": [
         "android.permission.ACCESS_COARSE_LOCATION",
         "android.permission.ACCESS_FINE_LOCATION",
-        "android.permission.ACCESS_COARSE_LOCATION",
-        "android.permission.ACCESS_FINE_LOCATION"
+        "android.permission.ACCESS_BACKGROUND_LOCATION"
       ]
     },
     "web": {
@@ -36,7 +35,10 @@
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": "Family7 shows your live location only to your circle."
+          "locationWhenInUsePermission": "Family7 shows your live location only to your circle.",
+          "locationAlwaysAndWhenInUsePermission": "Family7 keeps your circle updated even while the app is closed.",
+          "isAndroidBackgroundLocationEnabled": true,
+          "isAndroidForegroundServiceEnabled": true
         }
       ],
       "expo-font",

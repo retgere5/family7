@@ -45,18 +45,29 @@ export function useLocationTracking(enabled: boolean) {
   }, [enabled])
 }
 
-async function handlePosition(position: Location.LocationObject) {
-  const level = await Battery.getBatteryLevelAsync().catch(() => null)
+export function toLocationPoint(
+  position: Location.LocationObject,
+  battery: number | null,
+): LocationPoint {
   const { coords } = position
-  const point: LocationPoint = {
+  return {
     lat: coords.latitude,
     lng: coords.longitude,
     speed: coords.speed != null && coords.speed >= 0 ? coords.speed : null,
     heading: coords.heading != null && coords.heading >= 0 ? Math.min(coords.heading, 360) : null,
     accuracy: coords.accuracy != null && coords.accuracy >= 0 ? coords.accuracy : null,
-    battery: level != null && level >= 0 ? Math.round(level * 100) : null,
+    battery,
     recordedAt: new Date(position.timestamp).toISOString(),
   }
+}
+
+export async function readBatteryPercent() {
+  const level = await Battery.getBatteryLevelAsync().catch(() => null)
+  return level != null && level >= 0 ? Math.round(level * 100) : null
+}
+
+async function handlePosition(position: Location.LocationObject) {
+  const point = toLocationPoint(position, await readBatteryPercent())
   lastPosition = point
   for (const listener of positionListeners) listener(point)
   sendLocation(point)

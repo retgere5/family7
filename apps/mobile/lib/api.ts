@@ -115,6 +115,10 @@ export function getAccessToken() {
   return accessToken
 }
 
+export function hasRefreshToken() {
+  return refreshToken != null
+}
+
 export function apiWsUrl() {
   return `${baseUrl.replace(/^http/, 'ws')}/ws`
 }

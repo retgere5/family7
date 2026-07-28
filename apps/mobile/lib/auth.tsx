@@ -1,6 +1,7 @@
 import type { User } from '@family7/shared'
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { restoreSession, signInWithDevLogin, signOut as apiSignOut } from './api'
+import { stopBackgroundUpdates } from './background-location'
 
 type AuthState =
   | { status: 'loading'; user: null }
@@ -37,6 +38,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setState({ status: 'signedIn', user: session.user })
       },
       signOut: async () => {
+        await stopBackgroundUpdates().catch(() => null)
         await apiSignOut()
         setState({ status: 'signedOut', user: null })
       },
