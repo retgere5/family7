@@ -25,6 +25,15 @@ export const placeSchema = z.object({
   notify: z.boolean(),
 })
 
+export const memberEventSchema = z.object({
+  id: z.string(),
+  transition: z.enum(['enter', 'leave']),
+  placeName: z.string(),
+  placeIcon: z.string(),
+  at: z.iso.datetime(),
+})
+
 export type PlaceRef = z.infer<typeof placeRefSchema>
 export type UpsertPlaceInput = z.infer<typeof upsertPlaceSchema>
 export type Place = z.infer<typeof placeSchema>
+export type MemberEvent = z.infer<typeof memberEventSchema>

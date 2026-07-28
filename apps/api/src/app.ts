@@ -9,6 +9,7 @@ import locationRoutes from './modules/locations/routes'
 import pingRoutes from './modules/pings/routes'
 import placeRoutes from './modules/places/routes'
 import presenceRoutes from './modules/presence/routes'
+import timelineRoutes from './modules/timeline/routes'
 import authPlugin from './plugins/auth'
 
 export function buildApp() {
@@ -33,6 +34,7 @@ export function buildApp() {
   app.register(pingRoutes)
   app.register(placeRoutes)
   app.register(groceryRoutes)
+  app.register(timelineRoutes)
   app.register(liveRoutes)
 
   return app
