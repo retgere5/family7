@@ -117,7 +117,20 @@ export default function Settings() {
             </Pressable>
           </View>
         </>
-      ) : null}
+      ) : (
+        <>
+          <Text style={styles.sectionLabel}>CIRCLE</Text>
+          <View style={styles.card}>
+            <Pressable
+              style={({ pressed }) => [styles.row, pressed && styles.dim]}
+              onPress={() => router.push('/circle-setup')}
+            >
+              <Text style={styles.rowTitle}>Join or create a circle</Text>
+              <Text style={styles.chevron}>›</Text>
+            </Pressable>
+          </View>
+        </>
+      )}
 
       <Pressable
         style={({ pressed }) => [styles.signOut, pressed && styles.dim]}

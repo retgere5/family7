@@ -2,7 +2,7 @@ import { Camera, Map as MapLibreMap, Marker, type CameraRef } from '@maplibre/ma
 import type { Circle, PingKind } from '@family7/shared'
 import * as Clipboard from 'expo-clipboard'
 import { LinearGradient } from 'expo-linear-gradient'
-import { Redirect, useRouter } from 'expo-router'
+import { useRouter } from 'expo-router'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -15,7 +15,7 @@ import { useAuth } from '../lib/auth'
 import { useCircleLive } from '../lib/circle-live'
 import { speedKmh, speedLabel, timeAgo } from '../lib/format'
 import { subscribeLive } from '../lib/live'
-import { useLocationTracking } from '../lib/location'
+import { getLastPosition, subscribeSelfPosition, useLocationTracking } from '../lib/location'
 import { memberColor, pausedColor, type MemberColor } from '../lib/memberColors'
 import { MAP_STYLE_URL } from '../lib/mapStyle'
 import { useSelfPresence } from '../lib/presence'
@@ -36,7 +36,7 @@ export default function Home() {
   const router = useRouter()
   const insets = useSafeAreaInsets()
   const { data, isPending, isError } = useCircleLive()
-  useLocationTracking(Boolean(data?.circle))
+  useLocationTracking(!isPending && !isError)
   const { setStatus, setPaused } = useSelfPresence()
   const cameraRef = useRef<CameraRef>(null)
   const fitted = useRef(false)
@@ -44,6 +44,9 @@ export default function Home() {
   const [copied, setCopied] = useState(false)
   const [sentPing, setSentPing] = useState<PingKind | null>(null)
   const [banner, setBanner] = useState<string | null>(null)
+  const [selfPoint, setSelfPoint] = useState(getLastPosition())
+
+  useEffect(() => subscribeSelfPosition(setSelfPoint), [])
 
   const circle = data?.circle ?? null
   const members = useMemo(() => circle?.members ?? [], [circle])
@@ -54,6 +57,26 @@ export default function Home() {
       members.flatMap((member) => (member.location ? [{ member, location: member.location }] : [])),
     [members],
   )
+  const soloMember = useMemo<Member | null>(() => {
+    if (circle || !user || !selfPoint) return null
+    return {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      avatarUrl: user.avatarUrl,
+      statusEmoji: user.statusEmoji,
+      role: 'OWNER',
+      joinedAt: selfPoint.recordedAt,
+      sharingPaused: false,
+      location: selfPoint,
+      place: null,
+    }
+  }, [circle, user, selfPoint])
+  const mapMarkers = circle
+    ? located
+    : soloMember && selfPoint
+      ? [{ member: soloMember, location: selfPoint }]
+      : []
 
   useEffect(() => {
     if (!circle) return
@@ -82,16 +105,16 @@ export default function Home() {
   }, [banner])
 
   useEffect(() => {
-    if (fitted.current || located.length === 0) return
+    if (fitted.current || mapMarkers.length === 0) return
     fitted.current = true
     const timer = setTimeout(fitMap, 600)
     return () => clearTimeout(timer)
   })
 
   function fitMap() {
-    if (!cameraRef.current || located.length === 0) return
-    const first = located[0]
-    if (located.length === 1 && first) {
+    if (!cameraRef.current || mapMarkers.length === 0) return
+    const first = mapMarkers[0]
+    if (mapMarkers.length === 1 && first) {
       cameraRef.current.easeTo({
         center: [first.location.lng, first.location.lat],
         zoom: 14,
@@ -99,8 +122,8 @@ export default function Home() {
       })
       return
     }
-    const lats = located.map(({ location }) => location.lat)
-    const lngs = located.map(({ location }) => location.lng)
+    const lats = mapMarkers.map(({ location }) => location.lat)
+    const lngs = mapMarkers.map(({ location }) => location.lng)
     cameraRef.current.fitBounds(
       [Math.min(...lngs), Math.min(...lats), Math.max(...lngs), Math.max(...lats)],
       { padding: { top: 160, right: 90, bottom: 340, left: 90 }, duration: 600 },
@@ -136,8 +159,6 @@ export default function Home() {
     )
   }
 
-  if (!circle) return <Redirect href="/circle-setup" />
-
   return (
     <View style={styles.container}>
       <MapLibreMap
@@ -147,7 +168,7 @@ export default function Home() {
         logo={false}
       >
         <Camera ref={cameraRef} initialViewState={{ center: [29.03, 41.0], zoom: 10.5 }} />
-        {located.map(({ member, location }) => (
+        {mapMarkers.map(({ member, location }) => (
           <Marker key={member.id} lngLat={[location.lng, location.lat]}>
             <MarkerContent
               member={member}
@@ -160,14 +181,27 @@ export default function Home() {
       </MapLibreMap>
 
       <View style={[styles.topBar, { top: insets.top + 10 }]}>
-        <View style={styles.namePill}>
-          <Text style={styles.circleName}>{circle.name}</Text>
-          <Text style={styles.memberCount}>{members.length}</Text>
-        </View>
-        <Pressable style={styles.codeChip} onPress={copyCode}>
-          <Text style={styles.codeText}>{copied ? 'Copied!' : circle.inviteCode}</Text>
-          <CopyIcon />
-        </Pressable>
+        {circle ? (
+          <>
+            <View style={styles.namePill}>
+              <Text style={styles.circleName}>{circle.name}</Text>
+              <Text style={styles.memberCount}>{members.length}</Text>
+            </View>
+            <Pressable style={styles.codeChip} onPress={copyCode}>
+              <Text style={styles.codeText}>{copied ? 'Copied!' : circle.inviteCode}</Text>
+              <CopyIcon />
+            </Pressable>
+          </>
+        ) : (
+          <>
+            <View style={styles.namePill}>
+              <Text style={styles.circleName}>family7</Text>
+            </View>
+            <Pressable style={styles.setupChip} onPress={() => router.push('/circle-setup')}>
+              <Text style={styles.setupChipText}>Set up your circle ✨</Text>
+            </Pressable>
+          </>
+        )}
         <Pressable style={styles.iconButton} onPress={() => router.push('/settings')}>
           <SlidersIcon />
         </Pressable>
@@ -189,70 +223,106 @@ export default function Home() {
         <Pressable style={styles.handleZone} onPress={() => setExpanded((value) => !value)}>
           <View style={styles.handle} />
         </Pressable>
-        {expanded ? (
-          <View>
-            <Pressable style={styles.sheetHeader} onPress={() => setExpanded(false)}>
-              <Text style={styles.sheetTitle}>
-                {circle.name}
-                <Text style={styles.sheetCount}> {members.length} members</Text>
-              </Text>
-              <ChevronDownIcon />
-            </Pressable>
-            <View style={styles.quickRow}>
-              <QuickAction kind="on_my_way" primary sent={sentPing} onPress={firePing} />
-              <QuickAction kind="call_me" sent={sentPing} onPress={firePing} />
-              <QuickAction kind="arrived" sent={sentPing} onPress={firePing} />
-            </View>
-            <View style={styles.statusRow}>
-              <Text style={styles.sectionLabel}>MY STATUS</Text>
-              {STATUS_PRESETS.map((emoji) => {
-                const selected = self?.statusEmoji === emoji
-                return (
-                  <Pressable
-                    key={emoji}
-                    style={[styles.statusChip, selected && styles.statusChipSelected]}
-                    onPress={() => setStatus(selected ? null : emoji)}
-                  >
-                    <Text style={styles.statusEmoji}>{emoji}</Text>
-                  </Pressable>
-                )
-              })}
-              <View style={styles.pauseGroup}>
-                <Text style={styles.pauseLabel}>Pause</Text>
-                <Toggle
-                  value={self?.sharingPaused ?? false}
-                  onPress={() => setPaused(!(self?.sharingPaused ?? false))}
-                />
+        {circle ? (
+          expanded ? (
+            <View>
+              <Pressable style={styles.sheetHeader} onPress={() => setExpanded(false)}>
+                <Text style={styles.sheetTitle}>
+                  {circle.name}
+                  <Text style={styles.sheetCount}> {members.length} members</Text>
+                </Text>
+                <ChevronDownIcon />
+              </Pressable>
+              <View style={styles.quickRow}>
+                <QuickAction kind="on_my_way" primary sent={sentPing} onPress={firePing} />
+                <QuickAction kind="call_me" sent={sentPing} onPress={firePing} />
+                <QuickAction kind="arrived" sent={sentPing} onPress={firePing} />
+              </View>
+              <View style={styles.statusRow}>
+                <Text style={styles.sectionLabel}>MY STATUS</Text>
+                {STATUS_PRESETS.map((emoji) => {
+                  const selected = self?.statusEmoji === emoji
+                  return (
+                    <Pressable
+                      key={emoji}
+                      style={[styles.statusChip, selected && styles.statusChipSelected]}
+                      onPress={() => setStatus(selected ? null : emoji)}
+                    >
+                      <Text style={styles.statusEmoji}>{emoji}</Text>
+                    </Pressable>
+                  )
+                })}
+                <View style={styles.pauseGroup}>
+                  <Text style={styles.pauseLabel}>Pause</Text>
+                  <Toggle
+                    value={self?.sharingPaused ?? false}
+                    onPress={() => setPaused(!(self?.sharingPaused ?? false))}
+                  />
+                </View>
+              </View>
+              <View style={styles.memberCard}>
+                {members.map((member, index) => (
+                  <MemberListRow
+                    key={member.id}
+                    member={member}
+                    isSelf={member.id === user?.id}
+                    color={memberColor(member.id, user?.id, memberIds)}
+                    last={index === members.length - 1}
+                  />
+                ))}
               </View>
             </View>
-            <View style={styles.memberCard}>
-              {members.map((member, index) => (
-                <MemberListRow
+          ) : (
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.chipsRow}
+            >
+              {members.map((member) => (
+                <MemberChip
                   key={member.id}
                   member={member}
                   isSelf={member.id === user?.id}
                   color={memberColor(member.id, user?.id, memberIds)}
-                  last={index === members.length - 1}
+                  onPress={() => setExpanded(true)}
                 />
               ))}
+            </ScrollView>
+          )
+        ) : (
+          <View>
+            {soloMember ? (
+              <View style={styles.soloChipRow}>
+                <MemberChip
+                  member={soloMember}
+                  isSelf
+                  color={memberColor(soloMember.id, soloMember.id, [soloMember.id])}
+                  onPress={() => router.push('/circle-setup')}
+                />
+              </View>
+            ) : (
+              <Text style={styles.soloHint}>Waiting for your location…</Text>
+            )}
+            <View style={styles.soloCard}>
+              <Text style={styles.soloTitle}>It's just you here ✨</Text>
+              <Text style={styles.soloBody}>
+                Create a circle or join with an invite code to see your family on this map.
+              </Text>
+              <Pressable
+                style={({ pressed }) => (pressed ? styles.dim : null)}
+                onPress={() => router.push('/circle-setup')}
+              >
+                <LinearGradient
+                  colors={gradients.primary}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={styles.soloButton}
+                >
+                  <Text style={styles.soloButtonText}>Create or join a circle</Text>
+                </LinearGradient>
+              </Pressable>
             </View>
           </View>
-        ) : (
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.chipsRow}
-          >
-            {members.map((member) => (
-              <MemberChip
-                key={member.id}
-                member={member}
-                isSelf={member.id === user?.id}
-                color={memberColor(member.id, user?.id, memberIds)}
-                onPress={() => setExpanded(true)}
-              />
-            ))}
-          </ScrollView>
         )}
       </View>
     </View>
@@ -498,6 +568,62 @@ const styles = StyleSheet.create({
     fontSize: 12.5,
     letterSpacing: 2.5,
     color: colors.accentSoft,
+  },
+  setupChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    height: 40,
+    paddingHorizontal: 13,
+    backgroundColor: colors.pill,
+    borderWidth: 1.5,
+    borderColor: colors.accent,
+    borderRadius: radii.pill,
+  },
+  setupChipText: {
+    fontFamily: fonts.extraBold,
+    fontSize: 12.5,
+    color: colors.accentSoft,
+  },
+  soloChipRow: {
+    flexDirection: 'row',
+    marginBottom: 14,
+  },
+  soloHint: {
+    fontFamily: fonts.semiBold,
+    fontSize: 12.5,
+    color: colors.muted,
+    marginBottom: 14,
+  },
+  soloCard: {
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radii.card,
+    padding: 18,
+  },
+  soloTitle: {
+    fontFamily: fonts.extraBold,
+    fontSize: 16,
+    color: colors.text,
+  },
+  soloBody: {
+    marginTop: 6,
+    marginBottom: 14,
+    fontFamily: fonts.semiBold,
+    fontSize: 13,
+    lineHeight: 20,
+    color: colors.muted,
+  },
+  soloButton: {
+    height: 48,
+    borderRadius: radii.button,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  soloButtonText: {
+    fontFamily: fonts.extraBold,
+    fontSize: 14,
+    color: '#FFFFFF',
   },
   iconButton: {
     marginLeft: 'auto',

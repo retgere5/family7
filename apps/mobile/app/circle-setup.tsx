@@ -58,19 +58,24 @@ export default function CircleSetup() {
         contentContainerStyle={styles.container}
         keyboardShouldPersistTaps="handled"
       >
-        <View style={styles.avatarRow}>
-          <MemberAvatar
-            initial={firstName.charAt(0).toUpperCase()}
-            color={selfColor}
-            size={40}
-            ringWidth={2}
-          />
-          <View style={[styles.ghostAvatar, { backgroundColor: colors.border }]}>
-            <Text style={styles.ghostPlus}>+</Text>
+        <View style={styles.topRow}>
+          <View style={styles.avatarRow}>
+            <MemberAvatar
+              initial={firstName.charAt(0).toUpperCase()}
+              color={selfColor}
+              size={40}
+              ringWidth={2}
+            />
+            <View style={[styles.ghostAvatar, { backgroundColor: colors.border }]}>
+              <Text style={styles.ghostPlus}>+</Text>
+            </View>
+            <View style={[styles.ghostAvatar, { backgroundColor: '#1C2438' }]}>
+              <Text style={[styles.ghostPlus, { color: colors.faint }]}>+</Text>
+            </View>
           </View>
-          <View style={[styles.ghostAvatar, { backgroundColor: '#1C2438' }]}>
-            <Text style={[styles.ghostPlus, { color: colors.faint }]}>+</Text>
-          </View>
+          <Pressable onPress={() => router.replace('/home')}>
+            <Text style={styles.skipText}>Maybe later</Text>
+          </Pressable>
         </View>
         <Text style={styles.title}>
           Hi {firstName} 👋{'\n'}Set up your circle
@@ -167,10 +172,20 @@ const styles = StyleSheet.create({
     paddingTop: 84,
     paddingBottom: 40,
   },
+  topRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
   avatarRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
+  },
+  skipText: {
+    fontFamily: fonts.bold,
+    fontSize: 13,
+    color: colors.faint,
   },
   ghostAvatar: {
     width: 40,
