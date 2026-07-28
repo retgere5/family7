@@ -54,10 +54,12 @@ async function refreshSession() {
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ refreshToken }),
     }).catch(() => null)
-    if (!response?.ok) {
+    if (!response) return null
+    if (response.status === 401 || response.status === 403) {
       await dropTokens()
       return null
     }
+    if (!response.ok) return null
     const session = (await response.json()) as AuthResponse
     await saveTokens(session.tokens)
     return session
