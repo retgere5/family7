@@ -12,6 +12,7 @@ import { MemberAvatar } from '../components/MemberAvatar'
 import { Toggle } from '../components/Toggle'
 import { sendPing } from '../lib/api'
 import { useAuth } from '../lib/auth'
+import { getBackgroundPermission, syncBackgroundUpdates } from '../lib/background-location'
 import { useCircleLive } from '../lib/circle-live'
 import { speedKmh, speedLabel, timeAgo } from '../lib/format'
 import { subscribeLive } from '../lib/live'
@@ -30,6 +31,8 @@ const PING_LABELS: Record<PingKind, string> = {
   call_me: '📞 Call me',
   arrived: '✅ Arrived',
 }
+
+let promptedBackground = false
 
 export default function Home() {
   const { user } = useAuth()
@@ -52,6 +55,7 @@ export default function Home() {
   const members = useMemo(() => circle?.members ?? [], [circle])
   const memberIds = useMemo(() => members.map((member) => member.id), [members])
   const self = members.find((member) => member.id === user?.id) ?? null
+  const selfPaused = self?.sharingPaused ?? false
   const located = useMemo(
     () =>
       members.flatMap((member) => (member.location ? [{ member, location: member.location }] : [])),
@@ -77,6 +81,20 @@ export default function Home() {
     : soloMember && selfPoint
       ? [{ member: soloMember, location: selfPoint }]
       : []
+
+  useEffect(() => {
+    if (isPending || isError) return
+    void syncBackgroundUpdates(selfPaused)
+  }, [isPending, isError, selfPaused])
+
+  useEffect(() => {
+    if (!selfPoint || promptedBackground) return
+    promptedBackground = true
+    void getBackgroundPermission().then((permission) => {
+      if (permission?.status === 'granted') return
+      router.push('/background-permission')
+    })
+  }, [selfPoint, router])
 
   useEffect(() => {
     if (!circle) return

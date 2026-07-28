@@ -1,8 +1,8 @@
 import type { Circle } from '@family7/shared'
 import * as Clipboard from 'expo-clipboard'
 import { useQuery } from '@tanstack/react-query'
-import { useRouter } from 'expo-router'
-import { useState } from 'react'
+import { useFocusEffect, useRouter } from 'expo-router'
+import { useCallback, useState } from 'react'
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { BackIcon, CopyIcon } from '../components/icons'
@@ -10,6 +10,7 @@ import { MemberAvatar } from '../components/MemberAvatar'
 import { Toggle } from '../components/Toggle'
 import { getMyCircle } from '../lib/api'
 import { useAuth } from '../lib/auth'
+import { isBackgroundSharingOn } from '../lib/background-location'
 import { memberColor } from '../lib/memberColors'
 import { useSelfPresence } from '../lib/presence'
 import { colors, fonts, radii } from '../lib/theme'
@@ -23,6 +24,19 @@ export default function Settings() {
   const { setPaused } = useSelfPresence()
   const { data } = useQuery({ queryKey: ['circle'], queryFn: getMyCircle })
   const [copied, setCopied] = useState(false)
+  const [backgroundOn, setBackgroundOn] = useState<boolean | null>(null)
+
+  useFocusEffect(
+    useCallback(() => {
+      let active = true
+      void isBackgroundSharingOn().then((on) => {
+        if (active) setBackgroundOn(on)
+      })
+      return () => {
+        active = false
+      }
+    }, []),
+  )
 
   const circle = data?.circle ?? null
   const members: Member[] = circle?.members ?? []
@@ -70,7 +84,7 @@ export default function Settings() {
 
       <Text style={styles.sectionLabel}>SHARING</Text>
       <View style={styles.card}>
-        <View style={styles.row}>
+        <View style={[styles.row, styles.rowBorder]}>
           <View style={styles.rowInfo}>
             <Text style={styles.rowTitle}>Pause my sharing</Text>
             <Text style={styles.rowHint}>Circle sees your last location only</Text>
@@ -80,6 +94,22 @@ export default function Settings() {
             onPress={() => setPaused(!(self?.sharingPaused ?? false))}
           />
         </View>
+        <Pressable
+          style={({ pressed }) => [styles.row, pressed && styles.dim]}
+          onPress={() => router.push('/background-permission')}
+        >
+          <View style={styles.rowInfo}>
+            <Text style={styles.rowTitle}>Background location</Text>
+            <Text style={styles.rowHint}>
+              {backgroundOn == null
+                ? 'Checking…'
+                : backgroundOn
+                  ? 'On · works even when the app is closed'
+                  : 'Off · tap to set up'}
+            </Text>
+          </View>
+          <Text style={styles.chevron}>›</Text>
+        </Pressable>
       </View>
 
       {circle ? (
@@ -148,7 +178,7 @@ export default function Settings() {
       >
         <Text style={styles.signOutText}>Sign out</Text>
       </Pressable>
-      <Text style={styles.version}>family7 · v0.1</Text>
+      <Text style={styles.version}>family7 · v0.2</Text>
     </ScrollView>
   )
 }
