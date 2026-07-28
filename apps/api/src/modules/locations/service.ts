@@ -70,9 +70,14 @@ export async function ingestLocations(
     select: { sharingPaused: true },
   })
   if (user.sharingPaused) return EMPTY_RESULT
-  const sorted = [...points].sort(
-    (a, b) => new Date(a.recordedAt).getTime() - new Date(b.recordedAt).getTime(),
-  )
+  const existing = await db.locationLatest.findUnique({
+    where: { userId },
+    select: { recordedAt: true, place: { select: { id: true, name: true, icon: true } } },
+  })
+  const lastSeenAt = existing?.recordedAt.getTime() ?? 0
+  const sorted = [...points]
+    .filter((point) => new Date(point.recordedAt).getTime() > lastSeenAt)
+    .sort((a, b) => new Date(a.recordedAt).getTime() - new Date(b.recordedAt).getTime())
   const latest = sorted[sorted.length - 1]
   if (!latest) return EMPTY_RESULT
 
@@ -82,10 +87,6 @@ export async function ingestLocations(
   if (circleId) {
     const places = await db.place.findMany({ where: { circleId } })
     place = toPlaceRef(findContainingPlace(places, latest.lat, latest.lng))
-    const existing = await db.locationLatest.findUnique({
-      where: { userId },
-      select: { place: { select: { id: true, name: true, icon: true } } },
-    })
     previousPlace = toPlaceRef(existing?.place ?? null)
   }
 
