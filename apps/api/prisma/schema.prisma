@@ -23,6 +23,8 @@ model User {
   refreshTokens   RefreshToken[]
   latestLocation  LocationLatest?
   locationHistory LocationHistory[]
+  groceriesAdded  GroceryItem[]     @relation("GroceryAddedBy")
+  groceriesChecked GroceryItem[]    @relation("GroceryCheckedBy")
 
   @@unique([provider, providerId])
 }
@@ -65,6 +67,22 @@ model Circle {
   createdAt  DateTime       @default(now())
   members    CircleMember[]
   places     Place[]
+  groceries  GroceryItem[]
+}
+
+model GroceryItem {
+  id          String    @id @default(cuid())
+  circleId    String
+  name        String
+  addedById   String
+  checkedById String?
+  checkedAt   DateTime?
+  createdAt   DateTime  @default(now())
+  circle      Circle    @relation(fields: [circleId], references: [id], onDelete: Cascade)
+  addedBy     User      @relation("GroceryAddedBy", fields: [addedById], references: [id], onDelete: Cascade)
+  checkedBy   User?     @relation("GroceryCheckedBy", fields: [checkedById], references: [id], onDelete: SetNull)
+
+  @@index([circleId])
 }
 
 model Place {
