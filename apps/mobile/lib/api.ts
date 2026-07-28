@@ -1,6 +1,7 @@
 import type {
   AuthResponse,
   Circle,
+  GroceryItem,
   LocationPoint,
   PingKind,
   Place,
@@ -124,6 +125,28 @@ export function postLocations(points: LocationPoint[]) {
     method: 'POST',
     body: JSON.stringify({ locations: points }),
   })
+}
+
+export function getGroceries() {
+  return request<{ items: GroceryItem[] }>('/groceries')
+}
+
+export function addGrocery(name: string) {
+  return request<{ item: GroceryItem }>('/groceries', {
+    method: 'POST',
+    body: JSON.stringify({ name }),
+  })
+}
+
+export function setGroceryChecked(id: string, checked: boolean) {
+  return request<{ item: GroceryItem }>(`/groceries/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify({ checked }),
+  })
+}
+
+export function deleteGrocery(id: string) {
+  return request<{ ok: boolean }>(`/groceries/${id}`, { method: 'DELETE' })
 }
 
 export function getPlaces() {

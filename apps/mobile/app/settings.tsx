@@ -109,10 +109,17 @@ export default function Settings() {
               </View>
             </View>
             <Pressable
-              style={({ pressed }) => [styles.row, pressed && styles.dim]}
+              style={({ pressed }) => [styles.row, styles.rowBorder, pressed && styles.dim]}
               onPress={() => router.push('/places')}
             >
               <Text style={styles.rowTitle}>Places</Text>
+              <Text style={styles.chevron}>›</Text>
+            </Pressable>
+            <Pressable
+              style={({ pressed }) => [styles.row, pressed && styles.dim]}
+              onPress={() => router.push('/groceries')}
+            >
+              <Text style={styles.rowTitle}>Groceries</Text>
               <Text style={styles.chevron}>›</Text>
             </Pressable>
           </View>
