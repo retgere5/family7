@@ -3,6 +3,7 @@ import type {
   Circle,
   GroceryItem,
   LocationPoint,
+  MemberEvent,
   PingKind,
   Place,
   UpsertPlaceInput,
@@ -125,6 +126,12 @@ export function postLocations(points: LocationPoint[]) {
     method: 'POST',
     body: JSON.stringify({ locations: points }),
   })
+}
+
+export function getMemberEvents(memberId: string, since: string) {
+  return request<{ events: MemberEvent[] }>(
+    `/members/${memberId}/events?since=${encodeURIComponent(since)}`,
+  )
 }
 
 export function getGroceries() {

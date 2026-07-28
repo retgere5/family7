@@ -169,7 +169,11 @@ export default function Home() {
       >
         <Camera ref={cameraRef} initialViewState={{ center: [29.03, 41.0], zoom: 10.5 }} />
         {mapMarkers.map(({ member, location }) => (
-          <Marker key={member.id} lngLat={[location.lng, location.lat]}>
+          <Marker
+            key={member.id}
+            lngLat={[location.lng, location.lat]}
+            onPress={() => router.push(`/member/${member.id}`)}
+          >
             <MarkerContent
               member={member}
               isSelf={member.id === user?.id}
@@ -268,6 +272,7 @@ export default function Home() {
                     isSelf={member.id === user?.id}
                     color={memberColor(member.id, user?.id, memberIds)}
                     last={index === members.length - 1}
+                    onPress={() => router.push(`/member/${member.id}`)}
                   />
                 ))}
               </View>
@@ -408,11 +413,13 @@ function MemberListRow({
   isSelf,
   color,
   last,
+  onPress,
 }: {
   member: Member
   isSelf: boolean
   color: MemberColor
   last: boolean
+  onPress: () => void
 }) {
   const paused = member.sharingPaused
   const shown = paused ? pausedColor : color
@@ -427,7 +434,14 @@ function MemberListRow({
           ? `${member.place.icon} At ${member.place.name}`
           : 'stationary'
   return (
-    <View style={[styles.memberRow, !last && styles.memberRowBorder]}>
+    <Pressable
+      style={({ pressed }) => [
+        styles.memberRow,
+        !last && styles.memberRowBorder,
+        pressed && styles.dim,
+      ]}
+      onPress={onPress}
+    >
       <MemberAvatar
         initial={member.name.charAt(0).toUpperCase()}
         color={shown}
@@ -463,7 +477,7 @@ function MemberListRow({
           {member.location ? timeAgo(member.location.recordedAt) : '—'}
         </Text>
       </View>
-    </View>
+    </Pressable>
   )
 }
 
